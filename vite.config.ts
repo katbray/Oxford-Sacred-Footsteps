@@ -1,47 +1,19 @@
-name: Deploy to GitHub Pages
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import { componentTagger } from "lovable-tagger";
 
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # Use Bun if your project has bun.lockb (yours does)
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: "latest"
-
-      - run: bun install
-      - run: bun run build
-
-      # This tells GitHub “we’re deploying to Pages”
-      - uses: actions/configure-pages@v5
-
-      # Upload the built site (Vite default output = dist)
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
+  base: "/Oxford-Sacred-Footsteps/",
+  server: {
+    host: "::",
+    port: 8080,
+  },
+  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+}));
